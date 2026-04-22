@@ -1,28 +1,100 @@
 <!doctype html>
-<html>
+<html lang="es">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="src/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DroneFleet Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="src/style.css" />
 </head>
 
-<body class="bg-slate-900 text-white">
-
-<header class="p-6">
-  <h1 class="text-4xl font-bold">DroneFleet</h1>
+<body class="bg-slate-950 text-slate-100">
+<header class="px-6 py-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-xs uppercase tracking-[0.4em] text-slate-500">AXION Fleet</p>
+        <h1 class="text-4xl font-semibold tracking-tight">DroneFleet Dashboard</h1>
+      </div>
+      <div class="rounded-3xl border border-slate-700 bg-slate-900/80 px-5 py-4 text-slate-300 shadow-lg">
+        <p class="text-sm">Monitor en tiempo real</p>
+        <p class="text-xs text-slate-500">Leaflet + WebSocket + Chart.js</p>
+      </div>
+    </div>
+    <p class="mt-6 max-w-2xl text-slate-400">Visualiza el estado de la flota de drones con ubicacion, bateria y entregas usando la API.</p>
+  </div>
 </header>
-
-<main class="p-8">
-  <section id="listaDrones" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-  </section>
-
-  <section id="mapa">
-
-  </section>
+<main class="px-6 pb-12">
+  <div class="mx-auto max-w-7xl space-y-6">
+    <section class="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
+      <article class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-6 shadow-2xl shadow-slate-900/20">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm uppercase tracking-[0.4em] text-slate-500">Mapa</p>
+            <h2 class="mt-2 text-3xl font-semibold">Drones en ruta</h2>
+          </div>
+          <div class="inline-flex items-center gap-3 rounded-3xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-emerald-400">
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+            Conectado via WebSocket
+          </div>
+        </div>
+        <div class="mt-6 space-y-6">
+          <div class="overflow-hidden rounded-[2rem] border border-slate-700 bg-slate-950/80">
+            <div id="map" class="min-h-[340px]"></div>
+          </div>
+          <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Drones</p>
+                <h3 class="mt-2 text-lg font-semibold text-slate-100">Listado en el panel</h3>
+              </div>
+              <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-400">En vivo</span>
+            </div>
+            <div id="listaDrones" class="mt-5 grid gap-4 sm:grid-cols-2"></div>
+          </div>
+        </div>
+      </article>
+      <aside class="space-y-6">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Drones totales</p>
+            <p id="totalDrones" class="mt-4 text-4xl font-semibold">0</p>
+          </div>
+          <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Promedio bateria</p>
+            <p id="avgBattery" class="mt-4 text-4xl font-semibold">0%</p>
+          </div>
+          <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Vuelos activos</p>
+            <p id="activeFlights" class="mt-4 text-4xl font-semibold">0</p>
+          </div>
+          <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Entregas totales</p>
+            <p id="totalDeliveries" class="mt-4 text-4xl font-semibold">0</p>
+          </div>
+        </div>
+        <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Baterías</p>
+            <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-400">Actualizado</span>
+          </div>
+          <canvas id="batteryChart" class="mt-5" height="230"></canvas>
+        </div>
+        <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Entregas</p>
+            <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-400">En vivo</span>
+          </div>
+          <canvas id="deliveryChart" class="mt-5" height="230"></canvas>
+        </div>
+      </aside>
+    </section>
+  </div>
 </main>
-
-<script type="module" src="/js/main.js"></script>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.socket.io/4.7.0/socket.io.min.js"></script>
+<script type="module" src="./js/main.js"></script>
 </body>
 </html>

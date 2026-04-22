@@ -15,6 +15,10 @@ async function cargarDrones() {
         <p>ID: ${drone.id}</p>
         <p>Estado: ${drone.estado}</p>
         <p>Batería: ${drone.bateria}%</p>
+        <p>Ubicación: (${drone.ubicacion.lat}, ${drone.ubicacion.lng})</p>
+        <p>Velocidad: ${drone.velocidad} km/h</p>
+        <p>Peso Máximo: ${drone.pesoMaximo} kg</p>
+        <p>Entregas Realizadas: ${drone.entregasRealizadas}</p>
       </div>
     `).join("");
 

@@ -29,7 +29,7 @@ export function inicializarNotificaciones(socket) {
   });
 
   socket.on("alerta-bateria-baja", (drone) => {
-    mostrarNotificacion(`BATERÍA CRÍTICA: ${drone.nombre} (${drone.bateria}%)`, "error");
+    mostrarNotificacion(`BATERÍA CRÍTICA: ${drone.nombre} (${Number(drone.bateria).toFixed(1)}%)`, "error");
   });
 
   socket.on("entrega-completada", (data) => {

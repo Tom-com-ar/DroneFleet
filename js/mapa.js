@@ -2,10 +2,19 @@
 let map;
 let mapInitialized = false;
 
-function batteryColor(value) {
-  if (value > 50) return "#34d399";
-  if (value > 20) return "#facc15";
-  return "#f87171";
+function stateColor(estado) {
+  switch (estado) {
+    case "en_vuelo":
+      return "#facc15"; // amarillo
+    case "regresando":
+      return "#fb923c"; // naranja
+    case "mantenimiento":
+      return "#f87171"; // rojo
+    case "cargando":
+      return "#3b82f6"; // azul
+    default:
+      return "#34d399"; // verde
+  }
 }
 
 function assertLeaflet() {
@@ -61,7 +70,7 @@ export function updateMapMarkers(drones) {
   drones.forEach(drone => {
     const position = [drone.ubicacion.lat, drone.ubicacion.lng];
     bounds.push(position);
-    const color = batteryColor(drone.bateria);
+    const color = stateColor(drone.estado);
     const markerOptions = {
       radius: 10,
       fillColor: color,

@@ -47,7 +47,7 @@ const drones = [
     id: "drone-005",
     nombre: "RapidAir",
     estado: "disponible",
-    bateria: 54,
+    bateria: 22,
     ubicacion: { lat: -34.6000, lng: -58.3825 },
     velocidad: 0,
     pesoMaximo: 7,
@@ -56,12 +56,27 @@ const drones = [
   }
 ];
 
+// Estación de carga fija
+const chargingStation = { lat: -34.6020, lng: -58.3800 };
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
 function randomDelta() {
   return (Math.random() - 0.5) * 0.0016;
+}
+
+function moveTowards(current, target, speed) {
+  const deltaLat = target.lat - current.lat;
+  const deltaLng = target.lng - current.lng;
+  const distance = Math.sqrt(deltaLat * deltaLat + deltaLng * deltaLng);
+  if (distance < 0.0001) return target; // Ya llegó
+  const step = speed / 100000; // Ajustar velocidad
+  return {
+    lat: clamp(current.lat + (deltaLat / distance) * step, -90, 90),
+    lng: clamp(current.lng + (deltaLng / distance) * step, -180, 180)
+  };
 }
 
 function getDrones() {
@@ -74,6 +89,10 @@ function getDroneById(id) {
 
 function tickDrones() {
   drones.forEach(drone => {
+    if (drone.estado === "disponible" && drone.bateria <= 20) {
+      drone.estado = "regresando";
+    }
+
     if (drone.estado === "en_vuelo") {
       drone.ubicacion.lat = clamp(drone.ubicacion.lat + randomDelta(), -90, 90);
       drone.ubicacion.lng = clamp(drone.ubicacion.lng + randomDelta(), -180, 180);
@@ -84,11 +103,19 @@ function tickDrones() {
     }
 
     if (drone.estado === "regresando") {
-      drone.ubicacion.lat = clamp(drone.ubicacion.lat + randomDelta() * 0.5, -90, 90);
-      drone.ubicacion.lng = clamp(drone.ubicacion.lng + randomDelta() * 0.5, -180, 180);
+      // Mover hacia la estación de carga
+      drone.ubicacion = moveTowards(drone.ubicacion, chargingStation, 0.001);
       drone.velocidad = 10 + Math.round(Math.random() * 6);
       drone.bateria = clamp(drone.bateria - 1.6, 0, 100);
-      if (drone.bateria <= 5) drone.estado = "cargando";
+      // Verificar si llegó a la estación
+      const distance = Math.sqrt(
+        (drone.ubicacion.lat - chargingStation.lat) ** 2 +
+        (drone.ubicacion.lng - chargingStation.lng) ** 2
+      );
+      if (distance < 0.0001 || drone.bateria <= 5) {
+        drone.estado = "cargando";
+        drone.ubicacion = { ...chargingStation }; // Fijar en la estación
+      }
     }
 
     if (drone.estado === "cargando") {

@@ -77,6 +77,10 @@ function displayStatus(status) {
   return status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
+function formatBattery(value) {
+  return `${Number(value).toFixed(1)}%`;
+}
+
 function updateSelectedDroneCard() {
   const drone = currentDrones.find(d => d.id === selectedDroneId);
   if (!drone) return;
@@ -84,7 +88,12 @@ function updateSelectedDroneCard() {
   if (droneStateText) droneStateText.textContent = displayStatus(drone.estado);
   if (droneStateBadge) {
     droneStateBadge.textContent = displayStatus(drone.estado);
-    droneStateBadge.className = `block w-full rounded-full px-4 py-3 text-center text-sm font-semibold ${drone.estado === "en_vuelo" ? "bg-amber-500 text-slate-950" : drone.estado === "mantenimiento" ? "bg-rose-500 text-slate-950" : "bg-emerald-500 text-slate-950"}`;
+    droneStateBadge.className = `block w-full rounded-full px-4 py-3 text-center text-sm font-semibold ${
+      drone.estado === "en_vuelo" ? "bg-amber-500 text-slate-950" :
+      drone.estado === "mantenimiento" ? "bg-rose-500 text-slate-950" :
+      drone.estado === "cargando" ? "bg-blue-500 text-slate-950" :
+      "bg-emerald-500 text-slate-950"
+    }`;
   }
 
   if (toggleDroneStateButton) {
@@ -119,7 +128,7 @@ function renderStats(drones) {
 
   if (!drones.length) return;
 
-  const avg = Math.round(drones.reduce((sum, d) => sum + d.bateria, 0) / drones.length);
+  const avg = (drones.reduce((sum, d) => sum + d.bateria, 0) / drones.length).toFixed(1);
   const active = drones.filter(d => d.estado === "en_vuelo").length;
   const total = drones.reduce((sum, d) => sum + (d.entregasRealizadas || 0), 0);
 
@@ -224,7 +233,7 @@ function renderDrones(drones) {
       <div class="bg-slate-800 p-6 rounded-xl shadow">
         <h2 class="text-xl font-bold">${drone.nombre}</h2>
         <p>Estado: ${displayStatus(drone.estado)}</p>
-        <p>Batería: ${drone.bateria}%</p>
+        <p>Batería: ${formatBattery(drone.bateria)}</p>
         <p>Ubicación: ${drone.ubicacion.lat.toFixed(4)}, ${drone.ubicacion.lng.toFixed(4)}</p>
         <p>Velocidad: ${drone.velocidad} km/h</p>
         <p>Entregas: ${drone.entregasRealizadas}</p>
@@ -264,21 +273,20 @@ async function toggleSelectedDroneState() {
 }
 
 async function addDeliveryToSelectedDrone() {
-  if (!selectedDroneId) {
-    mostrarNotificacion("Selecciona primero un dron.", "warning");
+  // Seleccionar automáticamente el dron disponible con más batería (>20%)
+  const availableDrones = currentDrones.filter(d => d.estado === "disponible" && d.bateria > 20);
+  if (availableDrones.length === 0) {
+    mostrarNotificacion("No hay drones disponibles con batería suficiente.", "warning");
     return;
   }
 
-  const drone = currentDrones.find(d => d.id === selectedDroneId);
-  if (!drone) {
-    mostrarNotificacion("Dron no válido.", "error");
-    return;
-  }
+  // Seleccionar el dron con más batería
+  const selectedDrone = availableDrones.reduce((prev, current) => (prev.bateria > current.bateria) ? prev : current);
 
   try {
     const body = {
-      droneId: selectedDroneId,
-      destino: { lat: drone.ubicacion.lat + 0.001, lng: drone.ubicacion.lng + 0.001 },
+      droneId: selectedDrone.id,
+      destino: { lat: selectedDrone.ubicacion.lat + 0.001, lng: selectedDrone.ubicacion.lng + 0.001 },
       paquete: "Carga urgente",
       peso: 3.2
     };
@@ -299,8 +307,6 @@ async function addDeliveryToSelectedDrone() {
       currentDrones = currentDrones.map(d => d.id === data.drone.id ? data.drone : d);
       updateDashboard(currentDrones);
     }
-
-    mostrarNotificacion(`Entrega asignada: ${data.entrega.paquete} a ${data.drone.nombre} (${data.entrega.tiempoEstimado}s)`, "success");
   } catch (err) {
     mostrarNotificacion("Error de conexión al asignar entrega.", "error");
   }

@@ -38,6 +38,25 @@ app.get("/api/entregas", (req, res) => {
   res.json(entregas);
 });
 
+app.put("/api/drones/:id/estado", (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+
+  if (!estado || !["disponible", "mantenimiento", "en_vuelo"].includes(estado)) {
+    return res.status(400).json({ error: "Estado inválido." });
+  }
+
+  const drone = droneStore.find(d => d.id === id);
+  if (!drone) {
+    return res.status(404).json({ error: "Drone no encontrado." });
+  }
+
+  drone.estado = estado;
+  io.emit("actualizacionDrones", getDrones());
+
+  res.json({ drone });
+});
+
 app.get("/api/drones/disponibles", (req, res) => {
   const drones = getDrones();
   const disponibles = drones.filter(
@@ -107,17 +126,31 @@ io.on("connection", (socket) => {
 ========================= */
 
 function moverDrones() {
-  const drones = getDrones();
+  droneStore.forEach((drone) => {
+    if (drone.estado === "mantenimiento" || drone.estado === "cargando") {
+      if (drone.estado === "cargando") {
+        drone.velocidad = 0;
+      }
+      return;
+    }
 
-  drones.forEach((drone) => {
-    if (drone.estado === "mantenimiento") return;
+    if (drone.estado === "disponible") {
+      if (drone.bateria <= 20) {
+        drone.estado = "regresando";
+      } else {
+        drone.velocidad = 0;
+      }
+    }
 
-    drone.ubicacion.lat += (Math.random() - 0.5) * 0.002;
-    drone.ubicacion.lng += (Math.random() - 0.5) * 0.002;
+    if (drone.estado === "regresando" || drone.estado === "en_vuelo") {
+      drone.ubicacion.lat += (Math.random() - 0.5) * 0.002;
+      drone.ubicacion.lng += (Math.random() - 0.5) * 0.002;
+      drone.velocidad = Math.floor(Math.random() * 60) + 10;
+    }
 
-    drone.velocidad = Math.floor(Math.random() * 60) + 10;
-
-    if (drone.bateria > 0) drone.bateria -= 1;
+    if (drone.bateria > 0) {
+      drone.bateria = Math.max(drone.bateria - 1, 0);
+    }
 
     drone.distanciaRecorrida += Math.random() * 3;
 
@@ -126,7 +159,7 @@ function moverDrones() {
     }
   });
 
-  io.emit("actualizacionDrones", drones);
+  io.emit("actualizacionDrones", getDrones());
 }
 
 /* cada 10 segundos */

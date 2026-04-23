@@ -3,7 +3,7 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 
-const { getDrones, tickDrones } = require("./drones");
+const { drones: droneStore, getDrones, getDroneById, tickDrones } = require("./drones");
 const { entregas, crearEntrega, completarEntrega } = require("./entregas");
 
 const app = express();
@@ -61,8 +61,7 @@ app.post("/api/entregas", (req, res) => {
     return res.status(400).json({ error: "Datos inválidos" });
   }
 
-  const drones = getDrones();
-  const drone = drones.find((d) => d.id === droneId);
+  const drone = getDroneById(droneId);
 
   if (!drone) return res.status(404).json({ error: "Drone no encontrado" });
 
@@ -79,11 +78,11 @@ app.post("/api/entregas", (req, res) => {
 
   const entrega = crearEntrega({ droneId, destino, paquete, peso });
 
-  io.emit("actualizacionDrones", drones);
+  io.emit("actualizacionDrones", getDrones());
   io.emit("entrega-asignada", { entrega, drone });
 
   setTimeout(() => {
-    completarEntrega(entrega.id, drones, io);
+    completarEntrega(entrega.id, droneStore, io);
   }, entrega.tiempoEstimado * 1000);
 
   res.status(201).json({ entrega, drone });

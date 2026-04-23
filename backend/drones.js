@@ -68,6 +68,10 @@ function getDrones() {
   return drones.map(drone => ({ ...drone, ubicacion: { ...drone.ubicacion } }));
 }
 
+function getDroneById(id) {
+  return drones.find(drone => drone.id === id);
+}
+
 function tickDrones() {
   drones.forEach(drone => {
     if (drone.estado === "en_vuelo") {
@@ -106,6 +110,8 @@ function tickDrones() {
 }
 
 module.exports = {
+  drones,
   getDrones,
+  getDroneById,
   tickDrones,
 };

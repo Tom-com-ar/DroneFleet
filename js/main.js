@@ -4,6 +4,8 @@ const apiUrl = "http://localhost:3000/api/drones";
 const socketUrl = "http://localhost:3000";
 let batteryChart;
 let deliveryChart;
+let currentDrones = [];
+let selectedDroneId = "drone-001";
 
 function batteryColor(value) {
   if (value > 50) return "#34d399";
@@ -120,17 +122,67 @@ function updateCharts(drones) {
   }
 }
 
+function getSelectedDrone() {
+  return currentDrones.find(drone => drone.id === selectedDroneId);
+}
+
+function updateDroneStateCard() {
+  const badge = document.getElementById("droneStateBadge");
+  const text = document.getElementById("droneStateText");
+  const drone = getSelectedDrone();
+  const state = drone && drone.estado === "mantenimiento" ? "mantenimiento" : "disponible";
+  const label = state === "mantenimiento" ? "En mantenimiento" : "Disponible";
+
+  if (text) text.textContent = label;
+  if (badge) {
+    badge.textContent = label;
+    badge.style.backgroundColor = state === "disponible" ? "#34d399" : "#ef4444";
+    badge.style.color = state === "disponible" ? "#0f172a" : "#ffffff";
+    badge.classList.remove("bg-emerald-500", "bg-rose-500", "bg-red-500", "text-slate-950", "text-white");
+  }
+}
+
+function populateDroneStateSelector(drones) {
+  const selector = document.getElementById("droneSelector");
+  if (!selector) return;
+
+  const previousId = selectedDroneId;
+  selector.innerHTML = drones.map(drone => `
+    <option value="${drone.id}">${drone.nombre}</option>
+  `).join("");
+
+  selectedDroneId = drones.some(drone => drone.id === previousId)
+    ? previousId
+    : drones[0]?.id || "";
+
+  selector.value = selectedDroneId;
+  updateDroneStateCard();
+}
+
+function toggleDroneState() {
+  const drone = getSelectedDrone();
+  if (!drone) return;
+
+  drone.estado = drone.estado === "mantenimiento" ? "disponible" : "mantenimiento";
+  updateDashboard(currentDrones);
+}
+
 function updateDashboard(drones) {
+  currentDrones = drones;
   updateSummary(drones);
   renderDroneCards(drones);
   updateCharts(drones);
   updateMapMarkers(drones);
+  populateDroneStateSelector(drones);
+  updateDroneStateCard();
 }
 
 async function cargarDrones() {
   try {
     const response = await fetch(apiUrl);
     const dronesData = await response.json();
+    currentDrones = dronesData;
+    selectedDroneId = dronesData[0]?.id || selectedDroneId;
     console.log("Drones recibidos:", dronesData);
     updateDashboard(dronesData);
   } catch (error) {
@@ -159,3 +211,19 @@ function startSocket() {
 bootMap();
 cargarDrones();
 startSocket();
+
+const droneSelector = document.getElementById("droneSelector");
+const toggleDroneStateButton = document.getElementById("toggleDroneStateButton");
+
+if (droneSelector) {
+  droneSelector.addEventListener("change", event => {
+    selectedDroneId = event.target.value;
+    updateDroneStateCard();
+  });
+}
+
+if (toggleDroneStateButton) {
+  toggleDroneStateButton.addEventListener("click", () => {
+    toggleDroneState();
+  });
+}

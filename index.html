@@ -43,6 +43,49 @@
           <div class="overflow-hidden rounded-[2rem] border border-slate-700 bg-slate-950/80">
             <div id="map" class="min-h-[340px]"></div>
           </div>
+          <div class="flex items-center justify-between rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <div>
+              <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Acción</p>
+              <h3 class="mt-2 text-lg font-semibold text-slate-100">Agregar entrega</h3>
+            </div>
+            <button class="inline-flex items-center gap-2 rounded-3xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300">
+              <span>Agregar entrega</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 fill-slate-950">
+                <path d="M12 5c.552 0 1 .448 1 1v5h5c.552 0 1 .448 1 1s-.448 1-1 1h-5v5c0 .552-.448 1-1 1s-1-.448-1-1v-5H6c-.552 0-1-.448-1-1s.448-1 1-1h5V6c0-.552.448-1 1-1z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Dron</p>
+                <h3 class="mt-2 text-lg font-semibold text-slate-100">Seleccionar dron</h3>
+              </div>
+              <div class="min-w-[180px]">
+                <select id="droneSelector" class="w-full rounded-3xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20">
+                  <option value="drone-001">EcoFlyer</option>
+                  <option value="drone-002">SkyFast</option>
+                  <option value="drone-003">TurboWing</option>
+                  <option value="drone-004">AeroMax</option>
+                  <option value="drone-005">FlashAir</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-6 rounded-[2rem] border border-slate-700 bg-slate-950 p-4">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Estado</p>
+                  <p id="droneStateText" class="mt-2 text-base font-semibold text-slate-100">Disponible</p>
+                </div>
+                <button id="toggleDroneStateButton" class="inline-flex items-center rounded-3xl bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/20">
+                  Cambiar estado
+                </button>
+              </div>
+              <div class="mt-4">
+                <span id="droneStateBadge" class="block w-full rounded-full bg-emerald-500 px-4 py-3 text-center text-sm font-semibold text-slate-950">Disponible</span>
+              </div>
+            </div>
+          </div>
           <div class="rounded-[2rem] border border-slate-700 bg-slate-900/90 p-5">
             <div class="flex items-center justify-between">
               <div>

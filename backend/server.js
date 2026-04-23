@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+<<<<<<< HEAD
 
 const app = express();
 const server = http.createServer(app);
@@ -11,22 +12,40 @@ const io = new Server(server, {
   cors: {
     origin: "*"
   }
+=======
+const { getDrones, tickDrones } = require("./drones");
+
+const app = express();
+const PORT = 3000;
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+>>>>>>> e9bbd67f6308a39675925ff6a9626d04f921676d
 });
 
 app.use(cors());
 app.use(express.json());
 
+<<<<<<< HEAD
 const PORT = 3000;
 
 /* Importar datos de drones */
 const drones = require("./drones");
 const { entregas, crearEntrega, completarEntrega } = require("./entregas");
+=======
+app.get("/", (req, res) => {
+  res.send("DroneFleet funcionando 🚁");
+});
+>>>>>>> e9bbd67f6308a39675925ff6a9626d04f921676d
 
 /* Endpoint REST */
 app.get("/api/drones", (req, res) => {
-  res.json(drones);
+  res.json(getDrones());
 });
 
+<<<<<<< HEAD
 app.get("/api/entregas", (req, res) => {
   res.json(entregas);
 });
@@ -115,6 +134,18 @@ function moverDrones() {
 setInterval(moverDrones, 10000);
 
 /* iniciar */
+=======
+io.on("connection", socket => {
+  console.log(`Cliente conectado: ${socket.id}`);
+  socket.emit("drones", getDrones());
+});
+
+setInterval(() => {
+  tickDrones();
+  io.emit("drones", getDrones());
+}, 3500);
+
+>>>>>>> e9bbd67f6308a39675925ff6a9626d04f921676d
 server.listen(PORT, () => {
   console.log(`Servidor en http://localhost:${PORT}`);
 });
